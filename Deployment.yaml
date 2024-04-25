@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-sql
+  labels:
+    app: springboot-sql
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: springboot-sql
+  template:
+    metadata:
+      labels:
+        app: springboot-sql
+    spec:
+      containers:
+        - name: springboot
+          image: appl2
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://<mysql-host>:<mysql-port>/<database-name>?useSSL=false
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: password
+      imagePullSecrets:
+        - name: <your-image-pull-secret>
