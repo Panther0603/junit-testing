@@ -1,6 +1,7 @@
 package com.junittestingdemo.controller;
 
 import com.junittestingdemo.dto.StudentDto;
+import com.junittestingdemo.services.RedisServices;
 import com.junittestingdemo.services.StudentServicesImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,9 @@ public class StudentController {
     @Autowired
     StudentServicesImpl studentServices;
 
+    @Autowired
+    RedisServices redisServices;
+
     @PostMapping("/save")
     public ResponseEntity<StudentDto> saveStudent(@RequestBody StudentDto studentDto){
         return ResponseEntity.ok(studentServices.createStudent(studentDto));
@@ -23,7 +27,15 @@ public class StudentController {
 
     @GetMapping("/byId")
     public ResponseEntity<StudentDto> getStudentById(@RequestParam Long id){
-        return ResponseEntity.ok(studentServices.getStudentDto(id));
+        StudentDto studentDto= redisServices.getRedisData("student_"+id,StudentDto.class);
+        if(studentDto!=null){
+            return ResponseEntity.ok(studentDto);
+        }else{
+            studentDto=studentServices.getStudentDto(id);
+            redisServices.setRedisData("student_"+id,studentDto,120l);
+             return ResponseEntity.ok(studentDto);
+        }
+
     }
 
 
